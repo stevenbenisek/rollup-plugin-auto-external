@@ -1,0 +1,37 @@
+{
+  "name": "rollup-plugin-auto-external",
+  "version": "1.0.0",
+  "description": "Rollup plugin to automatically exclude package.json dependencies and peerDependencies from your bundle",
+  "main": "index.js",
+  "scripts": {
+    "prepublishOnly": "npm test",
+    "test": "NODE_ENV=test $(npm bin)/jest"
+  },
+  "keywords": [
+    "rollup",
+    "plugin",
+    "external",
+    "auto",
+    "dependencies",
+    "peerDependencies"
+  ],
+  "author": "Steven Benisek <steven.benisek@gmail.com>",
+  "homepage": "https://github.com/stevenbenisek/rollup-plugin-auto-external",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stevenbenisek/rollup-plugin-auto-external.git"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=6"
+  },
+  "devDependencies": {
+    "jest": "^20.0.4"
+  },
+  "peerDependencies": {
+    "rollup": "^0.45.2"
+  },
+  "dependencies": {
+    "safe-resolve": "^1.0.0"
+  }
+}

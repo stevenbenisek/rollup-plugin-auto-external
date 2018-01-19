@@ -29,7 +29,7 @@
     "jest": "^20.0.4"
   },
   "peerDependencies": {
-    "rollup": "^0.45.2"
+    "rollup": ">=0.45.2"
   },
   "dependencies": {
     "safe-resolve": "^1.0.0"

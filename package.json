@@ -1,6 +1,6 @@
 {
   "name": "rollup-plugin-auto-external",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Rollup plugin to automatically exclude package.json dependencies and peerDependencies from your bundle",
   "main": "index.js",
   "scripts": {

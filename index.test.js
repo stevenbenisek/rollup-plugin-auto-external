@@ -1,4 +1,5 @@
 const autoExternal = require('./index');
+const getBuiltins = require('builtins');
 
 jest.mock(
   './package.json',
@@ -82,6 +83,13 @@ describe('autoExternal(options)', () => {
     ]);
   });
 
+  it('should dedupe the array', () => {
+    expect(autoExternal().options({ external: ['module', 'depModule'] }).external)
+      .toEqual([
+        'module', 'depModule', 'peerModule'
+      ]);
+  });
+
   it('should handle extending external function', () => {
     const { external } = autoExternal().options({
       external: id => id.includes('module'),
@@ -98,5 +106,19 @@ describe('autoExternal(options)', () => {
     });
 
     expect(() => external('path/to/unknow')).not.toThrow();
+  });
+
+  it('should handle adding builtins', () => {
+    expect(autoExternal({ builtins: true }).options({}).external).toEqual([
+      'depModule',
+      'peerModule'
+    ].concat(getBuiltins()));
+  });
+
+  it('should handle adding builtins for a specific Node.js version', () => {
+    expect(autoExternal({ builtins: '6.0.0' }).options({}).external).toEqual([
+      'depModule',
+      'peerModule'
+    ].concat(getBuiltins('6.0.0')));
   });
 });

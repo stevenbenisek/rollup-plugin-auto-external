@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "depModule": "^0.1.0"
+  },
+  "peerDependencies": {
+    "peerModule": "^0.1.0"
+  }
+}

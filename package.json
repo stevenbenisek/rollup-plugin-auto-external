@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "builtins": "^2.0.0",
+    "read-pkg": "^3.0.0",
     "safe-resolve": "^1.0.0"
   }
 }

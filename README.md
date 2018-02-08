@@ -28,15 +28,17 @@ export default {
 ##### Example `rollup.config.js` with options
 
 ```js
+import path from 'path';
 import autoExternal from 'rollup-plugin-auto-external';
 
 export default {
   entry: 'index.js',
   plugins: [
     autoExternal({
+      builtins: false,
       dependencies: true,
+      packagePath: path.resolve('./packages/module/package.json'),
       peerDependencies: false,
-      builtins: false
     }),
   ],
 };
@@ -60,17 +62,21 @@ export default {
 
 ### Options
 
+#### `builtins`
+
+`boolean`|`string`: defaults to `false`. Pass `true` to add all Node.js builtin modules (in the running version) as externals. Specify a `string` value (e.g., `'6.0.0'`) to add all builtin modules for a *specific version* of Node.js.
+
+Rollup will complain if `builtins` is present, and the build target is a browser. You may want [rollup-plugin-node-builtins](https://npm.im/package/rollup-plugin-node-builtins).
+
 #### `dependencies`
 
 `boolean`: defaults to `true` if the bundle [format](https://github.com/rollup/rollup/wiki/JavaScript-API#format) is `cjs` or `es`; `false` otherwise.
 
+#### `packagePath`
+
+`string`: defaults to `process.cwd()`. Path to a package.json file or its directory.
+
 #### `peerDependencies`
 
 `boolean`: defaults to `true`.
-
-#### `builtins`
-
-`boolean`|`string`: defaults to `false`. Pass `true` to add all Node.js builtin modules (in the running version) as externals. Specify a `string` value (e.g., `'6.0.0'`) to add all builtin modules for a *specific version* of Node.js. 
-
-Rollup will complain if `builtins` is present, and the build target is a browser. You may want [rollup-plugin-node-builtins](https://npm.im/package/rollup-plugin-node-builtins).
 

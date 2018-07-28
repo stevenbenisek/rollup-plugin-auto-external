@@ -4,7 +4,7 @@ const readPkg = require('read-pkg');
 
 module.exports = ({
   builtins,
-  dependencies,
+  dependencies = true,
   packagePath,
   peerDependencies = true,
 } = {}) => ({
@@ -13,12 +13,6 @@ module.exports = ({
     const pkg = readPkg.sync(packagePath);
     let external = [];
     let ids = [];
-
-    if (dependencies == undefined) {
-      dependencies = !(opts.targets || [opts]).some(({ format }) =>
-        ['amd', 'iife', 'umd'].includes(format)
-      );
-    }
 
     if (dependencies && pkg.dependencies) {
       ids = ids.concat(Object.keys(pkg.dependencies));

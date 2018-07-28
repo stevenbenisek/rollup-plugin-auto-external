@@ -16,45 +16,6 @@ describe('autoExternal(options)', () => {
     expect(autoExternal().options({}).external).toEqual(
       Object.keys(Object.assign({}, pkg.dependencies, pkg.peerDependencies))
     );
-
-    expect(
-      autoExternal().options({ targets: [{ format: 'cjs' }, { format: 'es' }] })
-        .external
-    ).toEqual(
-      Object.keys(Object.assign({}, pkg.dependencies, pkg.peerDependencies))
-    );
-  });
-
-  it('should not add dependencies by default if the format is `amd`, `iife` or `umd`', () => {
-    expect(autoExternal().options({ format: 'amd' }).external).toEqual(
-      Object.keys(pkg.peerDependencies)
-    );
-
-    expect(autoExternal().options({ format: 'iife' }).external).toEqual(
-      Object.keys(pkg.peerDependencies)
-    );
-
-    expect(autoExternal().options({ format: 'umd' }).external).toEqual(
-      Object.keys(pkg.peerDependencies)
-    );
-  });
-
-  it('should not add dependencies by default if the format of at least one of the targets is `amd`, `iife` or `umd`', () => {
-    expect(
-      autoExternal().options({ targets: [{ format: 'amd' }, { format: 'es' }] })
-        .external
-    ).toEqual(Object.keys(pkg.peerDependencies));
-
-    expect(
-      autoExternal().options({
-        targets: [{ format: 'iife' }, { format: 'es' }],
-      }).external
-    ).toEqual(Object.keys(pkg.peerDependencies));
-
-    expect(
-      autoExternal().options({ targets: [{ format: 'amd' }, { format: 'es' }] })
-        .external
-    ).toEqual(Object.keys(pkg.peerDependencies));
   });
 
   it('should handle disabling dependencies', () => {

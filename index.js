@@ -1,6 +1,7 @@
-const safeResolve = require('safe-resolve');
 const getBuiltins = require('builtins');
 const readPkg = require('read-pkg');
+const safeResolve = require('safe-resolve');
+const semver = require('semver');
 
 module.exports = ({
   builtins,
@@ -23,9 +24,7 @@ module.exports = ({
     }
 
     if (builtins) {
-      ids = ids.concat(
-        builtins === true ? getBuiltins() : getBuiltins(builtins)
-      );
+      ids = ids.concat(getBuiltins(semver.valid(builtins)));
     }
 
     if (typeof opts.external === 'function') {

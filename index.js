@@ -12,7 +12,6 @@ module.exports = ({
   name: 'auto-external',
   options(opts) {
     const pkg = readPkg.sync(packagePath);
-    let external = [];
     let ids = [];
 
     if (dependencies && pkg.dependencies) {
@@ -27,6 +26,8 @@ module.exports = ({
       ids = ids.concat(getBuiltins(semver.valid(builtins)));
     }
 
+    let external = ids;
+
     if (typeof opts.external === 'function') {
       external = id =>
         opts.external(id) ||
@@ -34,8 +35,10 @@ module.exports = ({
           .map(safeResolve)
           .filter(Boolean)
           .includes(id);
-    } else {
-      external = Array.from(new Set((opts.external || []).concat(ids)));
+    }
+
+    if (Array.isArray(opts.external)) {
+      external = Array.from(new Set(opts.external.concat(ids)));
     }
 
     return Object.assign({}, opts, { external });

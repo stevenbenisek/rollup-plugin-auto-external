@@ -4,7 +4,7 @@ const safeResolve = require('safe-resolve');
 const semver = require('semver');
 
 module.exports = ({
-  builtins,
+  builtins = true,
   dependencies = true,
   packagePath,
   peerDependencies = true,

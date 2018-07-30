@@ -1,24 +1,18 @@
-const safeResolve = require('safe-resolve');
 const getBuiltins = require('builtins');
 const readPkg = require('read-pkg');
+const safeResolve = require('safe-resolve');
+const semver = require('semver');
 
 module.exports = ({
-  builtins,
-  dependencies,
+  builtins = true,
+  dependencies = true,
   packagePath,
   peerDependencies = true,
 } = {}) => ({
   name: 'auto-external',
   options(opts) {
     const pkg = readPkg.sync(packagePath);
-    let external = [];
     let ids = [];
-
-    if (dependencies == undefined) {
-      dependencies = !(opts.targets || [opts]).some(({ format }) =>
-        ['amd', 'iife', 'umd'].includes(format)
-      );
-    }
 
     if (dependencies && pkg.dependencies) {
       ids = ids.concat(Object.keys(pkg.dependencies));
@@ -29,10 +23,10 @@ module.exports = ({
     }
 
     if (builtins) {
-      ids = ids.concat(
-        builtins === true ? getBuiltins() : getBuiltins(builtins)
-      );
+      ids = ids.concat(getBuiltins(semver.valid(builtins)));
     }
+
+    let external = ids;
 
     if (typeof opts.external === 'function') {
       external = id =>
@@ -41,8 +35,10 @@ module.exports = ({
           .map(safeResolve)
           .filter(Boolean)
           .includes(id);
-    } else {
-      external = Array.from(new Set((opts.external || []).concat(ids)));
+    }
+
+    if (Array.isArray(opts.external)) {
+      external = Array.from(new Set(opts.external.concat(ids)));
     }
 
     return Object.assign({}, opts, { external });

@@ -18,10 +18,8 @@ npm install --save-dev rollup-plugin-auto-external
 import autoExternal from 'rollup-plugin-auto-external';
 
 export default {
-  entry: 'index.js',
-  plugins: [
-    autoExternal(),
-  ],
+  input: 'index.js',
+  plugins: [autoExternal()],
 };
 ```
 
@@ -32,7 +30,7 @@ import path from 'path';
 import autoExternal from 'rollup-plugin-auto-external';
 
 export default {
-  entry: 'index.js',
+  input: 'index.js',
   plugins: [
     autoExternal({
       builtins: false,
@@ -52,25 +50,38 @@ export default {
 import autoExternal from 'rollup-plugin-auto-external';
 
 export default {
-  entry: 'index.js',
+  input: 'index.js',
   external: id => id.includes('babel-runtime'),
-  plugins: [
-    autoExternal(),
-  ],
+  plugins: [autoExternal()],
 };
+```
+
+##### Example `rollup.config.js` with per format options
+
+```js
+import autoExternal from 'rollup-plugin-auto-external';
+
+export default ['es', 'umd'].map(format => ({
+  input: 'index.js',
+  plugins: [
+    autoExternal({
+      dependencies: format === 'es',
+    }),
+  ],
+}));
 ```
 
 ### Options
 
 #### `builtins`
 
-`boolean`|`string`: defaults to `false`. Pass `true` to add all Node.js builtin modules (in the running version) as externals. Specify a `string` value (e.g., `'6.0.0'`) to add all builtin modules for a *specific version* of Node.js.
+`boolean`|`string`: defaults to `true`. Add all Node.js builtin modules (in the running version) as externals. Specify a `string` value (e.g., `'6.0.0'`) to add all builtin modules for a _specific version_ of Node.js.
 
 Rollup will complain if `builtins` is present, and the build target is a browser. You may want [rollup-plugin-node-builtins](https://npm.im/package/rollup-plugin-node-builtins).
 
 #### `dependencies`
 
-`boolean`: defaults to `true` if the bundle [format](https://github.com/rollup/rollup/wiki/JavaScript-API#format) is `cjs` or `es`; `false` otherwise.
+`boolean`: defaults to `true`.
 
 #### `packagePath`
 
@@ -79,4 +90,3 @@ Rollup will complain if `builtins` is present, and the build target is a browser
 #### `peerDependencies`
 
 `boolean`: defaults to `true`.
-

@@ -1,4 +1,5 @@
 const getBuiltins = require('builtins');
+const path = require('path');
 const readPkg = require('read-pkg');
 const safeResolve = require('safe-resolve');
 const semver = require('semver');
@@ -26,20 +27,31 @@ module.exports = ({
       ids = ids.concat(getBuiltins(semver.valid(builtins)));
     }
 
-    let external = ids;
+    ids = ids.map(safeResolve).filter(Boolean);
 
-    if (typeof opts.external === 'function') {
-      external = id =>
-        opts.external(id) ||
-        ids
-          .map(safeResolve)
-          .filter(Boolean)
-          .includes(id);
-    }
+    const external = id => {
+      if (typeof opts.external === 'function' && opts.external(id)) {
+        return true;
+      }
 
-    if (Array.isArray(opts.external)) {
-      external = Array.from(new Set(opts.external.concat(ids)));
-    }
+      if (Array.isArray(opts.external) && opts.external.includes(id)) {
+        return true;
+      }
+
+      /**
+       * The `id` argument is a resolved path if `rollup-plugin-node-resolve`
+       * and `rollup-plugin-commonjs` are included.
+       */
+      const resolvedPath = safeResolve(id);
+
+      if (resolvedPath === null) {
+        return false;
+      }
+
+      const resolvedDirname = path.dirname(resolvedPath);
+
+      return ids.some(idx => resolvedDirname.startsWith(path.dirname(idx)));
+    };
 
     return Object.assign({}, opts, { external });
   },

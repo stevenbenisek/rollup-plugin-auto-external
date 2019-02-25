@@ -26,7 +26,10 @@
     "node": ">=6"
   },
   "devDependencies": {
-    "jest": "^20.0.4"
+    "@babel/core": "^7.3.3",
+    "jest": "^20.0.4",
+    "lodash": "^4.17.11",
+    "rollup": "^1.2.3"
   },
   "peerDependencies": {
     "rollup": ">=0.45.2"

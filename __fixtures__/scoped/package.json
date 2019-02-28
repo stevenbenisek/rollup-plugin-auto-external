@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@scope/foo": "^0.0.0",
+    "@scope/bar": "^0.0.0"
+  }
+}

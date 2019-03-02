@@ -1,131 +1,119 @@
 const path = require('path');
+const rollup = require('rollup');
+const builtins = require('rollup-plugin-node-builtins');
+const commonjs = require('rollup-plugin-commonjs');
+const nodeResolve = require('rollup-plugin-node-resolve');
 const autoExternal = require('../index');
-const getBuiltins = require('builtins');
-const pkgDirPath = path.resolve(__dirname, '..');
-const pkgFilePath = path.resolve(pkgDirPath, 'package.json');
-const pkg = require(pkgFilePath);
-const customPkgFilePath = path.resolve(__dirname, 'pkg.json');
-const customPkg = require(customPkgFilePath);
+
+const bundle = ({ input, external }, options) => {
+  process.chdir(path.dirname(input));
+
+  return rollup
+    .rollup({
+      external,
+      input,
+      plugins: [autoExternal(options), builtins(), nodeResolve(), commonjs()],
+    })
+    .then(bundle => bundle.generate({ format: 'esm' }))
+    .then(result => result.output[0].code)
+    .then(code => expect(code).toMatchSnapshot());
+};
+
+let cwd;
+
+beforeAll(() => {
+  cwd = process.cwd();
+});
+
+afterEach(() => {
+  process.chdir(cwd);
+});
 
 describe('autoExternal(options)', () => {
   it('should have a name', () => {
     expect(autoExternal().name).toEqual('auto-external');
   });
 
-  it('should add builtins, dependencies and peerDependencies by default', () => {
-    expect(autoExternal().options({}).external).toEqual(
-      [].concat(
-        Object.keys(pkg.dependencies),
-        Object.keys(pkg.peerDependencies),
-        getBuiltins()
-      )
-    );
-  });
+  it('should add dependencies by default', () =>
+    bundle({
+      input: path.resolve(__dirname, '../__fixtures__/deps/index.js'),
+    }));
 
-  it('should handle disabling builtins', () => {
-    expect(autoExternal({ builtins: false }).options({}).external).toEqual(
-      [].concat(
-        Object.keys(pkg.dependencies),
-        Object.keys(pkg.peerDependencies)
-      )
-    );
-  });
+  it('should handle disabling dependencies', () =>
+    bundle(
+      { input: path.resolve(__dirname, '../__fixtures__/deps/index.js') },
+      { dependencies: false }
+    ));
 
-  it('should handle disabling dependencies', () => {
-    expect(autoExternal({ dependencies: false }).options({}).external).toEqual(
-      [].concat(Object.keys(pkg.peerDependencies), getBuiltins())
-    );
-  });
+  it('should add peerDependencies by default', () =>
+    bundle({
+      input: path.resolve(__dirname, '../__fixtures__/peer-deps/index.js'),
+    }));
 
-  it('should handle disabling peerDependencies', () => {
-    expect(
-      autoExternal({ peerDependencies: false }).options({}).external
-    ).toEqual([].concat(Object.keys(pkg.dependencies), getBuiltins()));
-  });
+  it('should handle disabling peerDependencies', () =>
+    bundle(
+      { input: path.resolve(__dirname, '../__fixtures__/peer-deps/index.js') },
+      { peerDependencies: false }
+    ));
 
-  it('should handle extending external array', () => {
-    expect(
-      autoExternal().options({ external: ['non-builtin-module'] }).external
-    ).toEqual(
-      [].concat(
-        'non-builtin-module',
-        Object.keys(pkg.dependencies),
-        Object.keys(pkg.peerDependencies),
-        getBuiltins()
-      )
-    );
-  });
+  it('should add builtins by default', () =>
+    bundle({
+      input: path.resolve(__dirname, '../__fixtures__/builtins/index.js'),
+    }));
 
-  it('should dedupe the array', () => {
-    expect(
-      autoExternal().options({
-        external: ['non-builtin-module'].concat(
-          Object.keys(pkg.dependencies)[0]
+  it('should handle disabling builtins', () =>
+    bundle(
+      { input: path.resolve(__dirname, '../__fixtures__/builtins/index.js') },
+      { builtins: false }
+    ));
+
+  it('should handle adding builtins for a specific Node.js version', () =>
+    bundle(
+      {
+        input: path.resolve(
+          __dirname,
+          '../__fixtures__/builtins-6.0.0/index.js'
         ),
-      }).external
-    ).toEqual(
-      [].concat(
-        'non-builtin-module',
-        Object.keys(pkg.dependencies),
-        Object.keys(pkg.peerDependencies),
-        getBuiltins()
-      )
-    );
-  });
+      },
+      { builtins: '6.0.0' }
+    ));
 
-  it('should handle extending external function', () => {
-    const { external } = autoExternal().options({
-      external: id => id.includes('non-builtin-module'),
-    });
+  it('should handle extending external array', () =>
+    bundle({
+      input: path.resolve(__dirname, '../__fixtures__/deps/index.js'),
+      external: ['baz'],
+    }));
 
-    expect(typeof external).toEqual('function');
-    expect(external.length).toEqual(1);
-    expect(external('path/to/non-builtin-module')).toEqual(true);
-  });
+  it('should handle extending external function', () =>
+    bundle({
+      input: path.resolve(__dirname, '../__fixtures__/deps/index.js'),
+      external: id => id.includes('baz'),
+    }));
 
-  it('should not throw when resolving an unknown module', () => {
-    const { external } = autoExternal().options({
-      external: id => id.includes('non-builtin-module'),
-    });
+  it('should handle a custom package file path', () =>
+    bundle(
+      { input: path.resolve(__dirname, '../__fixtures__/deps/index.js') },
+      {
+        packagePath: path.resolve(
+          __dirname,
+          '../__fixtures__/package-path/package.json'
+        ),
+      }
+    ));
 
-    expect(() => external('path/to/unknow')).not.toThrow();
-  });
+  it('should handle a directory path as the packagePath', () =>
+    bundle(
+      { input: path.resolve(__dirname, '../__fixtures__/deps/index.js') },
+      { packagePath: path.resolve(__dirname, '../__fixtures__/package-path') }
+    ));
 
-  it('should handle adding builtins for a specific Node.js version', () => {
-    expect(autoExternal({ builtins: '6.0.0' }).options({}).external).toEqual(
-      [].concat(
-        Object.keys(pkg.dependencies),
-        Object.keys(pkg.peerDependencies),
-        getBuiltins('6.0.0')
-      )
-    );
-  });
+  it('should handle cherry picked modules', () =>
+    bundle({
+      input: path.resolve(__dirname, '../__fixtures__/cherry-picked/index.js'),
+    }));
 
-  it('should handle a directory path as the packagePath', () => {
-    expect(
-      autoExternal({
-        packagePath: pkgDirPath,
-      }).options({}).external
-    ).toEqual(
-      [].concat(
-        Object.keys(pkg.dependencies),
-        Object.keys(pkg.peerDependencies),
-        getBuiltins()
-      )
-    );
-  });
-
-  it('should handle a file path as the packagePath', () => {
-    expect(
-      autoExternal({
-        packagePath: customPkgFilePath,
-      }).options({}).external
-    ).toEqual(
-      [].concat(
-        Object.keys(customPkg.dependencies),
-        Object.keys(customPkg.peerDependencies),
-        getBuiltins()
-      )
-    );
-  });
+  it('should handle scoped modules', () =>
+    bundle({
+      input: path.resolve(__dirname, '../__fixtures__/scoped/index.js'),
+    }));
 });
